@@ -1,3 +1,5 @@
+const User = require('../models/user');
+
 module.exports.create = (req, res, next) => {
     res.render('auth/signup');
 }
@@ -19,9 +21,15 @@ module.exports.doCreate =  (req, res, next) =>{
                         user: req.body,
                         errors: { email: 'Email already registered' }
                     });
-                } 
+                } else {
+                    user = new User(req.body);
+                    return user.save()
+                        .then(user => {
+                            res.redirect('/');
+                        });
+                }
             })
-            .catch()
+            .catch(error => next(error));
             
     }
         
