@@ -1,12 +1,47 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
+const bcrypt = require('bcrypt');
+
+const brcryptSalt = 10;
 
 const userSchema = new Schema({
-  name: String,
-  email: String,
-  password: String,
-  isLaunderer: { type: Boolean, default: false },
-  fee: { type: Number, default: null }
+  name: {
+    type: String,
+  }, 
+  email: {
+    type: String,
+    required: true, 
+    match: [/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/, 'Please fill a valid email address'], 
+    unique: true
+  },
+  password: {
+    type: String,
+    required: 'Password is required'
+  }, 
+  isLaunderer: { 
+    type: Boolean, 
+    default: false
+  },
+  fee: { 
+    type: Number, 
+    default: null 
+  }
+});
+
+userSchema.pre('save', function(){
+  if (this.isModified('password')) {
+    bcrypt.genSalt(SALT_WORK_FACTOR)
+      .then(salt => {
+        return bcrypt.hash(this.password, salt)
+      })
+      .then(hash => {
+        this.password = hash;
+        next();
+      })
+      .catch(error => next(error));
+  } else {
+    next();
+  }
 });
 
 userSchema.set('timestamps', true);
